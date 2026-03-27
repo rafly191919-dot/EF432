@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dura Tenera</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-badge">DT</div>
+        <div>
+          <h1>Admin Dura Tenera</h1>
+          <p>Internal recap</p>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <button class="menu-link active" data-view="dashboard">Dashboard</button>
+        <button class="menu-link" data-view="input">Input Transaksi</button>
+        <button class="menu-link" data-view="rekap-harian">Rekap Harian</button>
+        <button class="menu-link" data-view="rekap-mingguan">Rekap Mingguan</button>
+        <button class="menu-link" data-view="rekap-bulanan">Rekap Bulanan</button>
+        <button class="menu-link" data-view="spreadsheet">Spreadsheet</button>
+        <button class="menu-link" data-view="supplier">Supplier</button>
+      </nav>
+
+      <div class="sidebar-note">
+        <strong>Catatan</strong>
+        <p>Versi awal ringan, tanpa login, siap untuk static hosting.</p>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <div>
+          <h2 id="page-title">Dashboard</h2>
+          <p id="page-subtitle">Ringkasan transaksi Dura Tenera hari ini.</p>
+        </div>
+        <div class="topbar-actions">
+          <button id="sync-btn" class="btn btn-secondary">Sync Data</button>
+          <span id="sync-status" class="status-pill neutral">Mode Local</span>
+        </div>
+      </header>
+
+      <main class="content">
+        <section id="view-dashboard" class="view active">
+          <div id="dashboard-summary"></div>
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Ringkasan per Supplier</h3>
+              </div>
+              <div id="dashboard-supplier-table"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Ringkasan per Sopir</h3>
+              </div>
+              <div id="dashboard-driver-table"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="view-input" class="view">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Input Transaksi</h3>
+              <p>Validasi wajib: Tenera + Dura harus tepat 100.</p>
+            </div>
+
+            <form id="transaction-form" class="form-grid">
+              <div class="field">
+                <label for="tanggal">Tanggal</label>
+                <input type="date" id="tanggal" required />
+              </div>
+
+              <div class="field">
+                <label for="supplier">Supplier</label>
+                <input list="supplier-list" id="supplier" placeholder="Pilih / ketik supplier" required />
+                <datalist id="supplier-list"></datalist>
+              </div>
+
+              <div class="field">
+                <label for="sopir">Nama Sopir</label>
+                <input type="text" id="sopir" placeholder="Nama sopir" required />
+              </div>
+
+              <div class="field">
+                <label for="plat">Plat Nomor</label>
+                <input type="text" id="plat" placeholder="Contoh: KH 1234 AB" required />
+              </div>
+
+              <div class="field">
+                <label for="tenera">Tenera</label>
+                <input type="number" id="tenera" min="0" max="100" step="1" placeholder="0 - 100" required />
+              </div>
+
+              <div class="field">
+                <label for="dura">Dura</label>
+                <input type="number" id="dura" min="0" max="100" step="1" placeholder="0 - 100" required />
+              </div>
+
+              <div class="field readonly-field">
+                <label>Total</label>
+                <input type="text" id="total-display" value="0" readonly />
+              </div>
+
+              <div class="field readonly-field">
+                <label>% Tenera</label>
+                <input type="text" id="percent-tenera" value="0%" readonly />
+              </div>
+
+              <div class="field readonly-field">
+                <label>% Dura</label>
+                <input type="text" id="percent-dura" value="0%" readonly />
+              </div>
+
+              <div class="field readonly-field">
+                <label>Status Validasi</label>
+                <div id="validation-indicator" class="validation-box invalid">Belum valid</div>
+              </div>
+
+              <div class="form-actions">
+                <button type="submit" id="save-btn" class="btn btn-primary" disabled>Simpan Transaksi</button>
+                <button type="reset" id="reset-btn" class="btn btn-secondary">Reset</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Tabel Transaksi</h3>
+              <p>Hapus aktif. Edit disediakan sebagai struktur awal.</p>
+            </div>
+            <div id="transaction-table-wrap"></div>
+          </div>
+        </section>
+
+        <section id="view-rekap-harian" class="view rekap-view">
+          <div id="rekap-harian-content"></div>
+        </section>
+
+        <section id="view-rekap-mingguan" class="view rekap-view">
+          <div id="rekap-mingguan-content"></div>
+        </section>
+
+        <section id="view-rekap-bulanan" class="view rekap-view">
+          <div id="rekap-bulanan-content"></div>
+        </section>
+
+        <section id="view-spreadsheet" class="view">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>Spreadsheet View</h3>
+              <p>Search dan filter sederhana dengan data real-time dari transaksi.</p>
+            </div>
+            <div class="toolbar">
+              <input type="text" id="sheet-search" placeholder="Cari supplier, sopir, plat, ID..." />
+              <input type="date" id="sheet-date-filter" />
+              <select id="sheet-supplier-filter">
+                <option value="">Semua Supplier</option>
+              </select>
+              <button id="clear-sheet-filter" class="btn btn-secondary">Reset Filter</button>
+            </div>
+            <div id="spreadsheet-table-wrap"></div>
+          </div>
+        </section>
+
+        <section id="view-supplier" class="view">
+          <div class="grid-2">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Master Supplier</h3>
+                <p>Supplier utama bisa diedit, ditambah, dan dihapus.</p>
+              </div>
+              <form id="supplier-form" class="form-grid compact">
+                <input type="hidden" id="supplier-edit-id" />
+                <div class="field">
+                  <label for="supplier-name">Nama Supplier</label>
+                  <input type="text" id="supplier-name" required />
+                </div>
+                <div class="field">
+                  <label for="supplier-wa">Nomor WA</label>
+                  <input type="text" id="supplier-wa" placeholder="08xxxxxxxxxx" />
+                </div>
+                <div class="field">
+                  <label for="supplier-status">Status Aktif</label>
+                  <select id="supplier-status">
+                    <option value="true">Aktif</option>
+                    <option value="false">Nonaktif</option>
+                  </select>
+                </div>
+                <div class="form-actions">
+                  <button type="submit" class="btn btn-primary">Simpan Supplier</button>
+                  <button type="button" id="supplier-reset" class="btn btn-secondary">Reset</button>
+                </div>
+              </form>
+            </div>
+
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Daftar Supplier</h3>
+              </div>
+              <div id="supplier-table-wrap"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
